@@ -1,64 +1,66 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Models\Product;
 use Illuminate\Http\Request;
 
-class ProductController extends Controller
-{
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
+class ProductController extends Controller {
+    public function __construct(){
+        $this->middleware('auth')->except(['index','show']);
+        $this->middleware('can:admin')->except(['index','show']);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+    public function index(){
+        $products = Product::paginate(12);
+        return view('products.index', compact('products'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
+    public function show(Product $product){
+        return view('products.show', compact('product'));
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
+    public function create(){
+        return view('products.create');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
+    public function store(Request $request){
+        $data = $request->validate([
+            'name'=>'required',
+            'category'=>'required',
+            'description'=>'nullable',
+            'price'=>'required|numeric',
+            'stock_quantity'=>'required|integer',
+            'image'=>'nullable|image|max:2048',
+        ]);
+        if($request->hasFile('image')){
+            $data['image'] = $request->file('image')->store('products','public');
+        }
+        Product::create($data);
+        return redirect()->route('products.index')->with('success','Product added.');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
+    public function edit(Product $product){
+        return view('products.edit', compact('product'));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+    public function update(Request $request, Product $product){
+        $data = $request->validate([
+            'name'=>'required',
+            'category'=>'required',
+            'description'=>'nullable',
+            'price'=>'required|numeric',
+            'stock_quantity'=>'required|integer',
+            'image'=>'nullable|image|max:2048',
+        ]);
+        if($request->hasFile('image')){
+            $data['image'] = $request->file('image')->store('products','public');
+        }
+        $product->update($data);
+        return redirect()->route('products.index')->with('success','Product updated.');
+    }
+
+    public function destroy(Product $product){
+        $product->delete();
+        return redirect()->route('products.index')->with('success','Product removed.');
     }
 }
