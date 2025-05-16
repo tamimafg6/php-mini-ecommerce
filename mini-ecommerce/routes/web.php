@@ -17,7 +17,9 @@ Route::get('/products', [ProductController::class, 'index'])->name('products.ind
 Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
 
 
-Route::middleware(['auth'])->group(function () {
+
+Route::middleware(['auth','can:admin'])->group(function () {
+    // Admin Products
     Route::get('/admin/products', [ProductController::class, 'adminIndex'])->name('admin.products.index');
     Route::get('/admin/products/search', [ProductController::class, 'adminSearch'])->name('admin.products.search');
     Route::get('/admin/products/create', [ProductController::class, 'create'])->name('admin.products.create');
@@ -26,9 +28,10 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/admin/products/{product}', [ProductController::class, 'update'])->name('admin.products.update');
     Route::delete('/admin/products/{product}', [ProductController::class, 'destroy'])->name('admin.products.destroy');
 
+    // Admin Orders
     Route::get('/admin/orders', [OrderController::class, 'index'])->name('admin.orders.index');
     Route::get('/admin/orders/{order}', [OrderController::class, 'show'])->name('admin.orders.show');
-    Route::delete('/admin/orders/{order}',[OrderController::class, 'destroy'])->name('admin.orders.destroy');
+    Route::delete('/admin/orders/{order}', [OrderController::class, 'destroy'])->name('admin.orders.destroy');
 });
 
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
