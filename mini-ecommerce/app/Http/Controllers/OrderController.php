@@ -3,46 +3,83 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Product;
 use Illuminate\Http\Request;
 
-class OrderController extends Controller {
-    public function checkoutForm(){
-        return view('checkout');
+
+class OrderController extends Controller
+{
+    public function index()
+    {
+        $orders = Order::with('items')->latest()->paginate(10);
+        return view('orders.index', compact('orders'));
     }
 
-    public function placeOrder(Request $request){
-        $data = $request->validate([
-            'name'=>'required',
-            'email'=>'required|email',
-            'address'=>'required',
-            'payment_type'=>'required'
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'customer_name' => 'required|string|max:255',
+            'customer_email' => 'required|email|max:255',
+            'customer_address' => 'required|string',
+            'payment_type' => 'required|in:credit_card,paypal,bank_transfer',
         ]);
-        $cart = session()->get('cart',[]);
-        $total = array_sum(array_map(fn($i)=>$i['price']*$i['quantity'],$cart));
-        $order = Order::create(array_merge($data, [
-            'user_id'=>auth()->id(),
-            'total_amount'=>$total
-        ]));
-        foreach($cart as $id=>$item){
-            $order->items()->create([
-                'product_id'=>$id,
-                'quantity'=>$item['quantity'],
-                'price'=>$item['price']
-            ]);
-            Product::find($id)->decrement('stock_quantity',$item['quantity']);
+
+        $cart = session()->get('cart', []);
+
+        if (empty($cart)) {
+            return redirect()->route('cart.index')->with('error', 'Your cart is empty!');
         }
+
+        $totalAmount = 0;
+        foreach ($cart as $item) {
+            $totalAmount += $item['price'] * $item['quantity'];
+        }
+
+        $order = Order::create([
+            'user_id' => auth()->id(),
+            'customer_name' => $validated['customer_name'],
+            'customer_email' => $validated['customer_email'],
+            'customer_address' => $validated['customer_address'],
+            'payment_type' => $validated['payment_type'],
+            'total_amount' => $totalAmount,
+        ]);
+
+        foreach ($cart as $item) {
+            OrderItem::create([
+                'order_id' => $order->id,
+                'product_id' => $item['id'],
+                'product_name' => $item['name'],
+                'price' => $item['price'],
+                'quantity' => $item['quantity'],
+            ]);
+
+            $product = Product::find($item['id']);
+            $product->stock_quantity -= $item['quantity'];
+            $product->save();
+        }
+
         session()->forget('cart');
-        return redirect()->route('products.index')->with('success','Order placed!');
+
+        return redirect()->route('orders.confirmation', $order)
+            ->with('success', 'Order placed successfully!');
     }
 
-    public function adminIndex(){
-        $orders = Order::with('items.product')->paginate(15);
-        return view('admin.orders.index', compact('orders'));
+    public function show(Order $order)
+    {
+        return view('orders.show', compact('order'));
     }
 
-    public function adminShow(Order $order){
-        $order->load('items.product');
-        return view('admin.orders.show', compact('order'));
+    public function confirmation(Order $order)
+    {
+        return view('orders.confirmation', compact('order'));
+    }
+
+    public function destroy(Order $order)
+    {
+        $order->delete();
+        return redirect()
+            ->route('admin.orders.index')
+            ->with('success', 'Order deleted successfully.');
     }
 }
