@@ -1,44 +1,66 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\Product;
 use Illuminate\Http\Request;
-
-class CartController extends Controller {
-    public function add(Product $product){
+class CartController extends Controller
+{
+    public function index()
+    {
         $cart = session()->get('cart', []);
-        $id = $product->id;
-        if(isset($cart[$id])){
-            $cart[$id]['quantity']++;
+        return view('cart.index', compact('cart'));
+    }
+
+    public function add(Request $request, Product $product)
+    {
+        $cart = session()->get('cart', []);
+
+        if (isset($cart[$product->id])) {
+            $cart[$product->id]['quantity']++;
         } else {
-            $cart[$id] = [
-                'name'=>$product->name,
-                'quantity'=>1,
-                'price'=>$product->price,
-                'image'=>$product->image
+            $cart[$product->id] = [
+                "id" => $product->id,
+                "name" => $product->name,
+                "quantity" => 1,
+                "price" => $product->price,
+                "image" => $product->image
             ];
         }
-        session()->put('cart',$cart);
-        return back()->with('success','Added to cart');
+
+        session()->put('cart', $cart);
+        return redirect()->back()->with('success', 'Product added to cart successfully!');
     }
 
-    public function index(){
-        return view('cart.index', ['cart'=>session()->get('cart',[])]);
-    }
-
-    public function update(Request $request, Product $product){
-        $cart = session()->get('cart', []);
-        if(isset($cart[$product->id])){
-            $cart[$product->id]['quantity'] = $request->quantity;
-            session()->put('cart',$cart);
+    public function update(Request $request)
+    {
+        if($request->id && $request->quantity){
+            $cart = session()->get('cart');
+            $cart[$request->id]["quantity"] = $request->quantity;
+            session()->put('cart', $cart);
+            return redirect()->back()->with('success', 'Cart updated successfully!');
         }
-        return back()->with('success','Cart updated');
     }
 
-    public function remove(Product $product){
+    public function remove(Request $request)
+    {
+        if($request->id) {
+            $cart = session()->get('cart');
+            if(isset($cart[$request->id])) {
+                unset($cart[$request->id]);
+                session()->put('cart', $cart);
+            }
+            return redirect()->back()->with('success', 'Product removed from cart successfully!');
+        }
+    }
+
+    public function checkout()
+    {
         $cart = session()->get('cart', []);
-        unset($cart[$product->id]);
-        session()->put('cart',$cart);
-        return back()->with('success','Removed from cart');
+        if (empty($cart)) {
+            return redirect()->route('cart.index')->with('error', 'Your cart is empty!');
+        }
+
+        return view('cart.checkout', compact('cart'));
     }
 }

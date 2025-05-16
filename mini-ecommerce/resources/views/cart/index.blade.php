@@ -1,42 +1,93 @@
 @extends('layouts.app')
+
 @section('content')
-<h2 class="text-xl mb-4">Your Cart</h2>
-@if(!$cart)
-  <p>Your cart is empty.</p>
-@else
-  <table class="w-full bg-white rounded shadow">
-    <thead><tr>
-      <th>Product</th><th>Qty</th><th>Price</th><th>Total</th><th>Action</th>
-    </tr></thead>
-    <tbody>
-      @php $sum=0; @endphp
-      @foreach($cart as $id=>$item)
-        @php $total = $item['price']*$item['quantity']; $sum += $total; @endphp
-        <tr>
-          <td>{{ $item['name'] }}</td>
-          <td>
-            <form action="{{ route('cart.update',$id) }}" method="POST" class="inline">
-              @csrf @method('PATCH')
-              <input name="quantity" type="number" value="{{ $item['quantity'] }}" min="1" class="w-16 p-1 border">
-              <button class="ml-2 text-blue-500">Update</button>
-            </form>
-          </td>
-          <td>${{ $item['price'] }}</td>
-          <td>${{ $total }}</td>
-          <td>
-            <form action="{{ route('cart.remove',$id) }}" method="POST">
-              @csrf @method('DELETE')
-              <button class="text-red-500">Remove</button>
-            </form>
-          </td>
-        </tr>
-      @endforeach
-      <tr>
-        <td colspan="3" class="font-bold">Grand Total</td>
-        <td colspan="2" class="font-bold">${{ $sum }}</td>
-      </tr>
-    </tbody>
-  </table>
-  <a href="{{ route('checkout.form') }}" class="mt-4 inline-block bg-green-600 text-white px-4 py-2 rounded">Checkout</a>
-@endif
+    <div class="container">
+        <h1 class="mb-4">Your Shopping Cart</h1>
+
+        @if(count($cart) > 0)
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Subtotal</th>
+                                <th>Action</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @php $total = 0 @endphp
+                            @foreach($cart as $id => $details)
+                                @php
+                                    $subtotal = $details['price'] * $details['quantity'];
+                                    $total += $subtotal;
+                                @endphp
+                                <tr data-id="{{ $id }}">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            @if($details['image'])
+                                                <img src="{{ asset('storage/' . $details['image']) }}" alt="{{ $details['name'] }}" style="width: 50px; height: 50px; object-fit: cover; margin-right: 10px;">
+                                            @endif
+                                            <span>{{ $details['name'] }}</span>
+                                        </div>
+                                    </td>
+                                    <td>${{ number_format($details['price'], 2) }}</td>
+                                    <td>
+                                        <form action="{{ route('cart.update') }}" method="POST" class="d-flex align-items-center">
+                                            @csrf
+                                            <input type="hidden" name="id" value="{{ $id }}">
+                                            <input type="number" name="quantity" value="{{ $details['quantity'] }}" min="1" class="form-control form-control-sm" style="width: 70px;">
+                                            <button type="submit" class="btn btn-sm btn-primary ms-2">
+                                                <i class="fas fa-sync-alt"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                    <td>${{ number_format($subtotal, 2) }}</td>
+                                    <td>
+                                        <form action="{{ route('cart.remove') }}" method="POST">
+                                            @csrf
+                                            <input type="hidden" name="id" value="{{ $id }}">
+                                            <button type="submit" class="btn btn-danger btn-sm">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @endforeach
+                            </tbody>
+                            <tfoot>
+                            <tr>
+                                <td colspan="3" class="text-end fw-bold">Total:</td>
+                                <td class="fw-bold">${{ number_format($total, 2) }}</td>
+                                <td></td>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-3">
+                        <a href="{{ route('products.index') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left me-2"></i> Continue Shopping
+                        </a>
+                        <a href="{{ route('cart.checkout') }}" class="btn btn-success">
+                            Proceed to Checkout <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        @else
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <h3 class="mb-3">Your cart is empty!</h3>
+                    <p class="mb-4">Looks like you haven't added anything to your cart yet.</p>
+                    <a href="{{ route('products.index') }}" class="btn btn-primary">
+                        <i class="fas fa-shopping-bag me-2"></i> Start Shopping
+                    </a>
+                </div>
+            </div>
+        @endif
+    </div>
 @endsection
