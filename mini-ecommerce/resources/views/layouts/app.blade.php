@@ -39,7 +39,14 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('products.index') }}">Products</a>
                     </li>
-
+                    @auth
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('admin.products.index') }}">Manage Products</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('admin.orders.index') }}">Orders</a>
+                        </li>
+                    @endauth
                 </ul>
                 <div class="d-flex align-items-center">
                     <a class="me-3" href="{{ route('cart.index') }}">
