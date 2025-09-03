@@ -15,7 +15,6 @@ A lightweight **PHP** mini store that demonstrates core e‑commerce flows: **br
 - [Environment Configuration](#environment-configuration)
 - [Run the App](#run-the-app)
 - [Routes (Typical)](#routes-typical)
-- [Screenshots](#screenshots)
 - [Testing](#testing)
 - [Troubleshooting](#troubleshooting)
 - [Roadmap Ideas](#roadmap-ideas)
@@ -195,15 +194,6 @@ Admin area (examples):
 
 ---
 
-## Screenshots
-
-> Add screenshots or GIFs here once you have the app running. For example:
->
-> - `public/images/screenshots/home.png`
-> - `public/images/screenshots/cart.png`
-> - `public/images/screenshots/admin.png`
-
----
 
 ## Testing
 
