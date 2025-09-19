@@ -19,7 +19,6 @@ A lightweight **PHP** mini store that demonstrates core e‑commerce flows: **br
 - [Troubleshooting](#troubleshooting)
 - [Roadmap Ideas](#roadmap-ideas)
 - [Contributing](#contributing)
-- [License](#license)
 - [Author](#author)
 
 ---
@@ -234,11 +233,6 @@ If you add tests:
 
 ---
 
-## License
-
-Add a `LICENSE` file (MIT/Apache-2.0/etc.) if you plan to share or reuse this code publicly.
-
----
 
 ## Author
 
